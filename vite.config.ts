@@ -1,6 +1,5 @@
 import 'dotenv/config';
-import { defineConfig, PluginOption } from "vite";
-import fs from "fs";
+import { defineConfig } from "vite";
 import { getMaps, getMapsOptimizers, getMapsScripts, LogLevel, OptimizeOptions } from "wa-map-optimizer-vite";
 
 const maps = getMaps();
@@ -22,40 +21,10 @@ if (process.env.TILESET_OPTIMIZATION && process.env.TILESET_OPTIMIZATION === "tr
     }
 }
 
-// Get all file with the extension .wam
-const getWamFiles = () => {
-    let mapFiles: string[] = [];
-    for (const file of fs.readdirSync(".")) {
-        if (file.endsWith(".wam")) {
-            mapFiles.push(file);
-        }
-    }
-    return mapFiles;
-}
-
-// Option to copy all .wam files to the dist folder
-const copyWamFiles = (path: string) => {
-    const files = getWamFiles();
-    files.forEach((file: string) => {
-        fs.copyFileSync(`${file}`, `dist/${file}`);
-    });
-}
-
-// Create a new plugin to copy all .wam files to the dist folder
-const copyWamFilesPlugin = (): PluginOption => {
-    return {
-        name: 'copy-wam-files',
-        apply: 'build',
-        writeBundle() {
-            copyWamFiles("src");
-        }
-    }
-}
-
-
 export default defineConfig({
     base: "./",
     build: {
+        sourcemap: true,
         rollupOptions: {
             input: {
                 index: "./index.html",
@@ -63,10 +32,7 @@ export default defineConfig({
             },
         },
     },
-    plugins: [
-        ...getMapsOptimizers(maps, optimizerOptions),
-        copyWamFilesPlugin(),
-    ],
+    plugins: [...getMapsOptimizers(maps, optimizerOptions)],
     server: {
         host: "localhost",
         headers: {
